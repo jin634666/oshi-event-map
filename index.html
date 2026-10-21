@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="description" content="アニメ・漫画・ゲームのコラボカフェ、展示会・原画展、POP UP SHOPを開催地マップと開催状況で一覧できる非公式ファンサイト。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="推し活イベントマップ">
+<meta property="og:description" content="アニメ・漫画・ゲームのコラボカフェ、展示会・原画展、POP UP SHOPを開催地マップと開催状況で一覧できる非公式ファンサイト。">
+<meta name="twitter:card" content="summary">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>推し活イベントマップ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 左に都道府県タイルマップ（固定）、右にステータス順のイベントリスト。スマホでは縦積み */
+:root{
+  --bg:#F3F4F8; --surface:#FFFFFF; --ink:#171A2B; --muted:#5B5F76; --line:#DADCE6; --tile:#E4E6EF;
+  --accent:#D3336A; --accent-ink:#FFFFFF;
+  --live:#11905A; --soon:#B86E00; --plan:#2F5CC2; --end:#8A8DA0;
+  --live-bg:#E2F4EB; --soon-bg:#FBEFD9; --plan-bg:#E3EAFA; --end-bg:#ECEDF2;
+  --f-display:"Dela Gothic One","Hiragino Kaku Gothic StdN","Yu Gothic",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;
+  --f-mono:"DM Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10121B; --surface:#191C29; --ink:#ECEDF4; --muted:#A0A4BA; --line:#2C3044; --tile:#232739;
+    --accent:#FF5E90; --accent-ink:#1A0710;
+    --live:#38C483; --soon:#F0A436; --plan:#7A9DF5; --end:#6E7288;
+    --live-bg:#15392A; --soon-bg:#3A2C12; --plan-bg:#1C2A4D; --end-bg:#232634;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10121B; --surface:#191C29; --ink:#ECEDF4; --muted:#A0A4BA; --line:#2C3044; --tile:#232739;
+  --accent:#FF5E90; --accent-ink:#1A0710;
+  --live:#38C483; --soon:#F0A436; --plan:#7A9DF5; --end:#6E7288;
+  --live-bg:#15392A; --soon-bg:#3A2C12; --plan-bg:#1C2A4D; --end-bg:#232634;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:1240px;margin:0 auto}
+a{color:inherit}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 32px;padding-block:28px 20px;border-bottom:2px solid var(--ink)}
+.brand h1{font-family:var(--f-display);font-weight:400;font-size:clamp(28px,4.4vw,44px);line-height:1.1;margin:0;letter-spacing:.01em;text-wrap:balance}
+.brand h1 em{font-style:normal;color:var(--accent)}
+.brand p{margin:6px 0 0;color:var(--muted);font-size:13.5px}
+.today{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-family:var(--f-mono)}
+.today .lbl{font-size:11px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.today .d{font-size:20px;font-weight:500}
+
+/* status summary strip */
+.strip{display:flex;flex-wrap:wrap;gap:8px;padding-block:16px}
+.sbtn{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 10px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;cursor:pointer}
+.sbtn .n{font-family:var(--f-mono);font-weight:500;font-size:18px;font-variant-numeric:tabular-nums}
+.sbtn .t{font-size:13px;font-weight:700}
+.sbtn[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--c)}
+.st-live{--c:var(--live);--cb:var(--live-bg)} .st-soon{--c:var(--soon);--cb:var(--soon-bg)}
+.st-plan{--c:var(--plan);--cb:var(--plan-bg)} .st-end{--c:var(--end);--cb:var(--end-bg)}
+.st-live .dot{box-shadow:0 0 0 0 var(--live);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--live) 60%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.st-live .dot{animation:none}}
+
+/* main grid */
+.main{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:880px){.main{grid-template-columns:minmax(0,1fr)}}
+aside.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:16px}
+@media (max-width:880px){aside.side{position:static}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.panel h2{font-size:12px;letter-spacing:.14em;margin:0 0 10px;color:var(--muted);font-weight:700}
+
+/* tile map */
+.map{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));grid-template-rows:repeat(13,auto);gap:3px}
+.tile{aspect-ratio:1;max-width:100%;border:none;border-radius:4px;background:var(--tile);color:var(--muted);font-size:10.5px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;padding:0;position:relative;font-weight:500}
+.tile .c{font-family:var(--f-mono);font-size:11px;font-weight:500}
+.tile.has-live{background:color-mix(in srgb,var(--live) calc(var(--k)*100%),var(--tile));color:#fff}
+.tile.has-plan:not(.has-live){box-shadow:inset 0 0 0 1.5px var(--plan);color:var(--plan)}
+.tile.sel{outline:2.5px solid var(--accent);outline-offset:1px;z-index:1}
+.tile:disabled{cursor:default;opacity:.55}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;border-radius:3px;display:inline-block}
+.online{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:4px 12px;font-size:12.5px;cursor:pointer;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .cn{font-family:var(--f-mono);margin-left:4px;opacity:.7}
+
+/* filters */
+.filters{display:flex;flex-direction:column;gap:12px}
+.frow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.frow .fl{font-size:12px;color:var(--muted);width:100%;font-weight:700;letter-spacing:.08em}
+input[type="search"]{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px}
+.selnote{font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--accent) 12%,var(--surface));}
+.selnote button{border:none;background:none;text-decoration:underline;cursor:pointer;font-size:12.5px;color:var(--accent);font-weight:700}
+
+/* list */
+.list{display:flex;flex-direction:column;gap:28px;min-width:0}
+.group h3{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:15px;font-weight:700}
+.group h3 .cnt{font-family:var(--f-mono);color:var(--muted);font-weight:400;font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.card .head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;background:var(--cb);border-bottom:1px dashed color-mix(in srgb,var(--c) 45%,transparent)}
+.pill{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:13px;color:var(--c)}
+.remain{font-family:var(--f-mono);font-size:12.5px;color:var(--c);font-weight:500;text-align:right}
+.card .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.kind{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ktag{font-size:11px;font-weight:700;letter-spacing:.06em;padding:2px 8px;border-radius:4px;border:1.5px solid var(--ink)}
+.ktag.k-cafe{background:var(--ink);color:var(--bg)}
+.ktag.k-exhibit{border-style:double;border-width:3px;padding:0 7px}
+.ktag.k-event{border-style:dashed}
+.work{font-size:12px;color:var(--muted)}
+.card h4{margin:0;font-size:16px;line-height:1.45;text-wrap:balance}
+.venues{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.venues li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;align-items:start;padding-top:8px;border-top:1px solid var(--line)}
+.venues li.hl{background:color-mix(in srgb,var(--accent) 9%,transparent);margin-inline:-8px;padding-inline:8px;border-radius:6px}
+.pref{font-weight:700;font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:1px 6px;white-space:nowrap;grid-row:span 2}
+.vname{font-size:13.5px;min-width:0;overflow-wrap:anywhere}
+.vdate{font-family:var(--f-mono);font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.vdate .vs{color:var(--c);font-weight:500;font-family:var(--f-body);font-size:11.5px;display:inline-flex;align-items:center;gap:5px}
+.vdate .vs .dot{width:7px;height:7px;animation:none}
+.bar{grid-column:2;height:4px;border-radius:2px;background:var(--tile);position:relative;overflow:hidden;margin-top:3px}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--c);border-radius:2px}
+.note{font-size:12px;color:var(--muted);margin:0}
+.src{margin-top:auto;padding-top:6px;font-size:12px;display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center}
+.src a{color:var(--muted)}
+.src a.off{color:var(--ink);font-weight:700;font-size:12.5px}
+.unofficial{display:inline-block;font-family:var(--f-body);font-size:11px;font-weight:700;letter-spacing:.08em;border:1.5px solid var(--muted);color:var(--muted);border-radius:4px;padding:1px 6px;vertical-align:middle;margin-left:8px;position:relative;top:-4px}
+.empty{padding:28px;text-align:center;color:var(--muted);border:1.5px dashed var(--line);border-radius:10px}
+details.ended summary{cursor:pointer;list-style:none;display:flex}
+details.ended summary::-webkit-details-marker{display:none}
+details.ended summary h3::after{content:"▸ 表示";font-size:12px;color:var(--muted);font-weight:500;margin-left:6px}
+details.ended[open] summary h3::after{content:"▾ 隠す"}
+details.ended .card{opacity:.75}
+/* filter drawer (phone) */
+.fbox{display:flex;flex-direction:column;gap:16px}
+.fbox>summary{display:none}
+.fbox .fbody{display:flex;flex-direction:column;gap:16px}
+.prefchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.prefchips .fl{font-size:12px;color:var(--muted);width:100%;font-weight:700;letter-spacing:.08em}
+.chip.live-chip{border-color:color-mix(in srgb,var(--live) 55%,var(--line))}
+.showres{display:none}
+@media (max-width:880px){
+  body{font-size:15.5px}
+  header.top{padding-block:18px 14px;gap:8px 16px;align-items:center}
+  .brand p{font-size:12.5px}
+  .today{align-items:flex-start;flex-direction:row;gap:8px;align-items:baseline}
+  .today .d{font-size:15px}
+  .strip{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-block:10px;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px))) calc(-1 * max(16px,env(safe-area-inset-right,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line)}
+  .strip::-webkit-scrollbar{display:none}
+  .sbtn{flex:none;padding:7px 12px 7px 10px;gap:8px}
+  .sbtn .n{font-size:16px}
+  .main{gap:16px;margin-top:12px}
+  .fbox>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;cursor:pointer;background:var(--surface);border:1.5px solid var(--ink);border-radius:10px;padding:12px 14px;font-weight:700;font-size:14.5px}
+  .fbox>summary::-webkit-details-marker{display:none}
+  .fbox>summary .sum{font-weight:500;font-size:12.5px;color:var(--muted);text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fbox>summary::after{content:"▾";font-size:13px}
+  .fbox[open]>summary::after{content:"▴"}
+  .fbox[open]>summary{border-radius:10px 10px 0 0}
+  .fbox .fbody{gap:12px}
+  .panel{padding:14px}
+  .map{gap:2px}
+  .tile{font-size:9.5px;border-radius:3px}
+  .tile .c{font-size:10px}
+  .chip{padding:7px 14px;font-size:13.5px;min-height:36px}
+  input[type="search"]{font-size:16px;padding:11px 12px}
+  .showres{display:block;width:100%;padding:13px;border:none;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:15px;cursor:pointer}
+  .cards{gap:10px}
+  .card h4{font-size:15.5px}
+  .group h3{font-size:16px}
+  .src a{display:inline-block;padding-block:6px}
+  details.ended summary h3{min-height:40px}
+}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>推し活<em>イベント</em>マップ<span class="unofficial">非公式</span></h1>
+      <p>アニメ・漫画・ゲームのコラボカフェ／展示会・原画展／POP UP SHOP を、開催地と開催状況で一覧にした非公式ファンサイトです</p>
+    </div>
+    <div class="today"><span class="lbl">Today</span><span class="d" id="today"></span></div>
+  </header>
+
+  <div class="strip" id="strip" role="group" aria-label="開催状況で絞り込み"></div>
+
+  <div class="main">
+    <aside class="side">
+     <details class="fbox" id="fbox" open>
+      <summary><span>開催地・種類で絞り込む</span><span class="sum" id="fsum"></span></summary>
+      <div class="fbody">
+      <section class="panel">
+        <h2>開催地マップ（タップで絞り込み）</h2>
+        <div class="map" id="map"></div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--live)"></i>開催中（濃いほど多い）</span>
+          <span><i class="sw" style="box-shadow:inset 0 0 0 1.5px var(--plan)"></i>予定のみ</span>
+          <span><i class="sw" style="background:var(--tile)"></i>なし</span>
+        </div>
+        <div class="online" id="extraPrefs"></div>
+        <div class="prefchips" id="prefChips"></div>
+      </section>
+      <section class="panel filters">
+        <div class="frow"><label class="fl" for="q">キーワード</label><input type="search" id="q" placeholder="作品名・会場名で検索（例：ハイキュー、池袋）"></div>
+        <div class="frow" id="typeRow"><span class="fl">種類</span></div>
+        <div class="frow" id="regionRow"><span class="fl">地方</span></div>
+        <div id="selnote"></div>
+      </section>
+      <button class="showres" id="showres"></button>
+      </div>
+     </details>
+    </aside>
+
+    <main class="list" id="list"></main>
+  </div>
+
+  <footer>
+    <span><b>当サイトは個人が運営する非公式のファンサイトです。</b>掲載している作品・企業・主催者・会場とは一切関係がありません。作品名・商品名・商標などの権利は、それぞれの権利者に帰属します。</span>
+    <span>掲載しているのはイベント名・会場・会期などの事実情報のみで、画像やロゴ、記事本文は転載していません。</span>
+    <span>掲載情報は <b id="updated">—</b> 時点で各公式発表・情報サイトから確認したものです（毎週月曜に自動更新）。開催状況（開催中／終了など）は閲覧日の日付で自動判定しています。</span>
+    <span>会期・会場・予約方法は変更されることがあります。お出かけ前に各カードの「公式サイト」から最新情報を確認してください。</span>
+  </footer>
+</div>
+
+<script src="events.js"></script>
+<script>
+// ---- data ------------------------------------------------------------
+// イベント情報は events.js（window.EVENT_DATA）にあり、毎週自動で更新される
+const DATA = window.EVENT_DATA || {updated:null, events:[]};
+const EVENTS = DATA.events.map(e=>({t:e.type,title:e.title,work:e.work,
+  v:e.venues.map(x=>[x.pref,x.place,x.start,x.end||null]),note:e.note||null,off:e.official||null,ref:e.source||null}));
+// ---- geography -------------------------------------------------------
+const PREFS = [ // [name,label,row,col,region]
+ ["北海道","北海",0,12,"北海道・東北"],["青森","青森",2,12,"北海道・東北"],["秋田","秋田",3,11,"北海道・東北"],["岩手","岩手",3,12,"北海道・東北"],
+ ["山形","山形",4,11,"北海道・東北"],["宮城","宮城",4,12,"北海道・東北"],["石川","石川",5,8,"中部"],["富山","富山",5,9,"中部"],["新潟","新潟",5,10,"中部"],["福島","福島",5,11,"北海道・東北"],
+ ["福井","福井",6,7,"中部"],["岐阜","岐阜",6,8,"中部"],["長野","長野",6,9,"中部"],["群馬","群馬",6,10,"関東"],["栃木","栃木",6,11,"関東"],["茨城","茨城",6,12,"関東"],
+ ["島根","島根",7,3,"中国・四国"],["鳥取","鳥取",7,4,"中国・四国"],["兵庫","兵庫",7,5,"近畿"],["京都","京都",7,6,"近畿"],["滋賀","滋賀",7,7,"近畿"],["愛知","愛知",7,8,"中部"],["山梨","山梨",7,9,"中部"],["埼玉","埼玉",7,10,"関東"],["東京","東京",7,11,"関東"],["千葉","千葉",7,12,"関東"],
+ ["山口","山口",8,2,"中国・四国"],["広島","広島",8,3,"中国・四国"],["岡山","岡山",8,4,"中国・四国"],["大阪","大阪",8,5,"近畿"],["奈良","奈良",8,6,"近畿"],["三重","三重",8,7,"近畿"],["静岡","静岡",8,9,"中部"],["神奈川","神奈",8,10,"関東"],
+ ["佐賀","佐賀",9,0,"九州・沖縄"],["福岡","福岡",9,1,"九州・沖縄"],["愛媛","愛媛",9,3,"中国・四国"],["香川","香川",9,4,"中国・四国"],["和歌山","和歌",9,6,"近畿"],
+ ["長崎","長崎",10,0,"九州・沖縄"],["熊本","熊本",10,1,"九州・沖縄"],["大分","大分",10,2,"九州・沖縄"],["高知","高知",10,3,"中国・四国"],["徳島","徳島",10,4,"中国・四国"],
+ ["鹿児島","鹿児",11,1,"九州・沖縄"],["宮崎","宮崎",11,2,"九州・沖縄"],["沖縄","沖縄",12,0,"九州・沖縄"],
+];
+const REGION_OF = Object.fromEntries(PREFS.map(p=>[p[0],p[4]]));
+REGION_OF["全国"]="全国・オンライン"; REGION_OF["オンライン"]="全国・オンライン";
+const REGIONS = ["北海道・東北","関東","中部","近畿","中国・四国","九州・沖縄","全国・オンライン"];
+const TYPES = {cafe:"コラボカフェ",exhibit:"展示会・原画展",popup:"POP UP SHOP",event:"コラボイベント"};
+const TYPE_SHORT = {cafe:"CAFE",exhibit:"展示",popup:"POP UP",event:"EVENT"};
+const ST = {live:"開催中",soon:"まもなく開始",plan:"開催予定",end:"終了"};
+const ST_ORDER = ["live","soon","plan","end"];
+
+// ---- dates -----------------------------------------------------------
+const DAY = 864e5;
+const parse = s => { if(!s) return null; const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+const now = new Date(); const TODAY = new Date(now.getFullYear(),now.getMonth(),now.getDate());
+const W = "日月火水木金土";
+const fmt = (d, withYear) => (withYear||d.getFullYear()!==TODAY.getFullYear()? d.getFullYear()+"/" : "") + (d.getMonth()+1)+"/"+d.getDate()+"("+W[d.getDay()]+")";
+const diff = (a,b) => Math.round((a-b)/DAY);
+
+function venueStatus(s,e){
+  if(TODAY < s) return diff(s,TODAY) <= 7 ? "soon" : "plan";
+  if(e && TODAY > e) return "end";
+  return "live";
+}
+EVENTS.forEach((ev,i)=>{
+  ev.id=i;
+  ev.vs = ev.v.map(([pref,place,s,e])=>{ const S=parse(s),E=parse(e); return {pref,place,S,E,st:venueStatus(S,E)}; });
+  const sts = ev.vs.map(v=>v.st);
+  ev.st = ST_ORDER.find(k=>sts.includes(k));
+  const live = ev.vs.filter(v=>v.st==="live");
+  if(ev.st==="live"){ const ends = live.map(v=>v.E); ev.key = ends.some(x=>!x) ? 9e15 : Math.max(...ends); ev.openEnd = ends.some(x=>!x); }
+  else if(ev.st==="soon"||ev.st==="plan"){ ev.key = Math.min(...ev.vs.filter(v=>v.st===ev.st||v.st==="plan"||v.st==="soon").map(v=>+v.S)); }
+  else { ev.key = -Math.max(...ev.vs.map(v=>+(v.E||v.S))); }
+  ev.hay = (ev.title+ev.work+ev.vs.map(v=>v.pref+v.place).join("")+(ev.note||"")).toLowerCase();
+});
+
+// ---- state -----------------------------------------------------------
+const state = {st:new Set(), type:new Set(), region:null, pref:null, q:""};
+try{ const saved = JSON.parse(localStorage.getItem("oshi-filters")||"null"); if(saved){ state.type=new Set(saved.type||[]); state.st=new Set(saved.st||[]); } }catch(e){}
+const save = ()=>{ try{ localStorage.setItem("oshi-filters",JSON.stringify({type:[...state.type],st:[...state.st]})); }catch(e){} };
+
+function venueMatches(v){
+  if(state.pref) return v.pref===state.pref;
+  if(state.region) return REGION_OF[v.pref]===state.region;
+  return true;
+}
+function matches(ev, ignoreSt){
+  if(state.type.size && !state.type.has(ev.t)) return false;
+  if(!ignoreSt && state.st.size && !state.st.has(ev.st)) return false;
+  if(state.q && !ev.hay.includes(state.q)) return false;
+  if((state.pref||state.region) && !ev.vs.some(venueMatches)) return false;
+  return true;
+}
+
+// ---- render ----------------------------------------------------------
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+$("today").textContent = TODAY.getFullYear()+"."+String(TODAY.getMonth()+1).padStart(2,"0")+"."+String(TODAY.getDate()).padStart(2,"0")+" ("+W[TODAY.getDay()]+")";
+
+function renderStrip(){
+  const counts = {}; ST_ORDER.forEach(k=>counts[k]=0);
+  EVENTS.filter(e=>matches(e,true)).forEach(e=>counts[e.st]++);
+  $("strip").innerHTML = ST_ORDER.map(k=>`<button class="sbtn st-${k}" data-st="${k}" aria-pressed="${state.st.has(k)}"><span class="dot"></span><span class="t">${ST[k]}</span><span class="n">${counts[k]}</span></button>`).join("");
+}
+
+function prefCounts(){
+  const live={}, plan={};
+  EVENTS.forEach(ev=>{
+    if(state.type.size && !state.type.has(ev.t)) return;
+    if(state.q && !ev.hay.includes(state.q)) return;
+    const lp=new Set(), pp=new Set();
+    ev.vs.forEach(v=>{ if(v.st==="live") lp.add(v.pref); else if(v.st==="soon"||v.st==="plan") pp.add(v.pref); });
+    lp.forEach(p=>live[p]=(live[p]||0)+1); pp.forEach(p=>plan[p]=(plan[p]||0)+1);
+  });
+  return {live,plan};
+}
+function renderMap(){
+  const {live,plan} = prefCounts();
+  const max = Math.max(1,...Object.values(live));
+  $("map").innerHTML = PREFS.map(([name,label,r,c])=>{
+    const n = live[name]||0, p = plan[name]||0;
+    const k = n? (0.45 + 0.55*n/max).toFixed(2) : 0;
+    const cls = ["tile", n?"has-live":"", p?"has-plan":"", state.pref===name?"sel":""].join(" ");
+    const tip = `${name}：開催中 ${n}件／予定 ${p}件`;
+    return `<button class="${cls}" style="grid-row:${r+1};grid-column:${c+1};--k:${k}" data-pref="${name}" title="${tip}" aria-label="${tip}" ${!(n||p)?"disabled":""}><span>${label}</span>${n?`<span class="c">${n}</span>`:""}</button>`;
+  }).join("");
+  const extra = ["全国","オンライン"].map(p=>{ const n=(live[p]||0)+(plan[p]||0); return n?`<button class="chip" data-pref="${p}" aria-pressed="${state.pref===p}">${p}<span class="cn">${n}</span></button>`:""; }).join("");
+  $("extraPrefs").innerHTML = extra;
+  const ranked = Object.entries(live).filter(([p])=>REGION_OF[p]!=="全国・オンライン").sort((a,b)=>b[1]-a[1]);
+  $("prefChips").innerHTML = ranked.length ? `<span class="fl">いま開催中の都道府県</span>` + ranked.map(([p,n])=>`<button class="chip live-chip" data-pref="${p}" aria-pressed="${state.pref===p}">${p}<span class="cn">${n}</span></button>`).join("") : "";
+}
+
+function renderFilters(){
+  $("typeRow").innerHTML = `<span class="fl">種類</span>` + Object.entries(TYPES).map(([k,l])=>{
+    const n = EVENTS.filter(e=>e.t===k && e.st!=="end").length;
+    return `<button class="chip" data-type="${k}" aria-pressed="${state.type.has(k)}">${l}<span class="cn">${n}</span></button>`;
+  }).join("");
+  $("regionRow").innerHTML = `<span class="fl">地方</span>` + REGIONS.map(r=>`<button class="chip" data-region="${r}" aria-pressed="${state.region===r && !state.pref}">${r}</button>`).join("");
+  const sel = state.pref || state.region;
+  $("selnote").innerHTML = sel ? `<div class="selnote"><span>開催地：<b>${esc(sel)}</b> で絞り込み中</span><button id="clearPlace">解除</button></div>` : "";
+}
+
+function remainText(ev){
+  if(ev.st==="live"){
+    if(ev.openEnd) return "常設・終了日未定";
+    const end = new Date(ev.key); const d = diff(end,TODAY);
+    return d===0 ? "本日まで" : `あと${d}日（〜${fmt(end)}）`;
+  }
+  if(ev.st==="soon"||ev.st==="plan"){ const s=new Date(ev.key); const d=diff(s,TODAY); return d===1?"明日から":`${d}日後（${fmt(s)}〜）`; }
+  return "";
+}
+function card(ev){
+  const vs = ev.vs.map(v=>{
+    let pct=null;
+    if(v.st==="live" && v.E){ pct = Math.min(100,Math.max(2,(TODAY-v.S)/(v.E-v.S+DAY)*100)); }
+    const range = `${fmt(v.S)} 〜 ${v.E?fmt(v.E):"未定"}`;
+    const hl = (state.pref||state.region) && venueMatches(v) ? "hl":"";
+    return `<li class="${hl}"><span class="pref">${esc(v.pref)}</span><span class="vname">${esc(v.place)}</span>
+      <span class="vdate st-${v.st}">${range}<span class="vs"><span class="dot"></span>${ST[v.st]}</span></span>
+      ${pct!==null?`<span class="bar st-live" title="会期の${Math.round(pct)}%経過"><i style="width:${pct}%"></i></span>`:""}</li>`;
+  }).join("");
+  return `<article class="card st-${ev.st}">
+    <div class="head"><span class="pill"><span class="dot"></span>${ST[ev.st]}</span><span class="remain">${remainText(ev)}</span></div>
+    <div class="body">
+      <div class="kind"><span class="ktag k-${ev.t}">${TYPE_SHORT[ev.t]}</span><span class="work">${esc(ev.work)}</span></div>
+      <h4>${esc(ev.title)}</h4>
+      <ul class="venues">${vs}</ul>
+      ${ev.note?`<p class="note">※ ${esc(ev.note)}</p>`:""}
+      <div class="src">${ev.off?`<a class="off" href="${esc(ev.off)}" target="_blank" rel="noopener">${/twitter\.com|x\.com/.test(ev.off)?"公式X":"公式サイト"} ↗</a>`:""}${ev.ref?`<a href="${esc(ev.ref)}" target="_blank" rel="noopener">参考記事 ↗</a>`:""}</div>
+    </div></article>`;
+}
+function renderList(){
+  const items = EVENTS.filter(e=>matches(e));
+  if(!items.length){ $("list").innerHTML = `<div class="empty">条件に合うイベントはありません。絞り込みを減らすか、別の開催地を選んでください。</div>`; return; }
+  $("list").innerHTML = ST_ORDER.map(k=>{
+    const g = items.filter(e=>e.st===k).sort((a,b)=>a.key-b.key);
+    if(!g.length) return "";
+    const h = `<h3 class="st-${k}"><span class="dot"></span>${ST[k]}${k==="soon"?"（7日以内）":""}<span class="cnt">${g.length}件</span></h3>`;
+    const body = `<div class="cards">${g.map(card).join("")}</div>`;
+    if(k==="end") return `<details class="group ended"${state.st.has("end")?" open":""}><summary>${h}</summary>${body}</details>`;
+    return `<section class="group">${h}${body}</section>`;
+  }).join("");
+}
+function renderSummary(){
+  const parts = [];
+  if(state.pref||state.region) parts.push(state.pref||state.region);
+  if(state.type.size) parts.push([...state.type].map(k=>TYPE_SHORT[k]).join("・"));
+  if(state.q) parts.push("「"+state.q+"」");
+  $("fsum").textContent = parts.length ? parts.join("／") : "すべて";
+  $("showres").textContent = `${EVENTS.filter(e=>matches(e)).length}件の結果を見る`;
+}
+function render(){ renderStrip(); renderMap(); renderFilters(); renderList(); renderSummary(); }
+const PHONE = window.matchMedia("(max-width: 880px)");
+const syncDrawer = ()=>{ $("fbox").open = !PHONE.matches; };
+syncDrawer();
+try{ PHONE.addEventListener("change",syncDrawer); }catch(e){}
+$("fbox").addEventListener("toggle",()=>{ if(!PHONE.matches && !$("fbox").open) $("fbox").open = true; });
+
+// ---- events ----------------------------------------------------------
+document.addEventListener("click",e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  if(b.dataset.st){ const k=b.dataset.st; state.st.has(k)?state.st.delete(k):state.st.add(k); save(); render(); }
+  else if(b.dataset.type){ const k=b.dataset.type; state.type.has(k)?state.type.delete(k):state.type.add(k); save(); render(); }
+  else if(b.dataset.pref){ state.pref = state.pref===b.dataset.pref?null:b.dataset.pref; state.region=null; render(); }
+  else if(b.dataset.region){ const r=b.dataset.region; state.region = (state.region===r && !state.pref)?null:r; state.pref=null; render(); }
+  else if(b.id==="clearPlace"){ state.pref=null; state.region=null; render(); }
+  else if(b.id==="showres"){ $("fbox").open=false; $("list").scrollIntoView({behavior:"smooth",block:"start"}); }
+  if(b.dataset.st && PHONE.matches){ $("list").scrollIntoView({behavior:"smooth",block:"start"}); }
+});
+$("q").addEventListener("input",e=>{ state.q=e.target.value.trim().toLowerCase(); render(); });
+if(DATA.updated){ const u=parse(DATA.updated); $("updated").textContent = u.getFullYear()+"年"+(u.getMonth()+1)+"月"+u.getDate()+"日"; }
+render();
+if(!DATA.events.length){ $("list").innerHTML = `<div class="empty">イベント情報（events.js）を読み込めませんでした。ページを再読み込みしてください。</div>`; }
+</script>
+
+</body>
+</html>

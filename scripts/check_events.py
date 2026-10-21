@@ -71,7 +71,27 @@ def check(data):
         if key in seen:
             errors.append(f"{tag}: 同じ title/work のイベントが重複しています")
         seen.add(key)
+    errors += find_duplicates(data.get("events", []))
     return errors
+
+
+def find_duplicates(events):
+    """名前の書き方が違っても、種類・作品・会場の会期が同じなら同一イベントとみなす。"""
+    def sig(e):
+        try:
+            return (e["type"], tuple(sorted((v["pref"], v["start"], v["end"] or "") for v in e["venues"])))
+        except (KeyError, TypeError):
+            return None
+    def same_work(a, b):
+        a, b = a.replace(" ", ""), b.replace(" ", "")
+        return a[:3] == b[:3] or a in b or b in a
+    out = []
+    for i, a in enumerate(events):
+        for j in range(i + 1, len(events)):
+            b = events[j]
+            if sig(a) and sig(a) == sig(b) and same_work(str(a.get("work", "")), str(b.get("work", ""))):
+                out.append(f"#{i}「{a.get('title')}」と #{j}「{b.get('title')}」は同じイベントの重複の可能性があります。1件にまとめてください")
+    return out
 
 
 def last_day(e):
